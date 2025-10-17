@@ -1,7 +1,6 @@
 // server/actions/farm/harvest.ts
 import { z } from 'zod'
 import { Farm } from '~~/server/models/farm.model'
-import { QUALITIES, REALMS, SEEDS } from '~~/shared'
 
 const payloadSchema = z.object({
   plotId: z.number()

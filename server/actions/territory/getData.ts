@@ -1,6 +1,5 @@
 // server/actions/territory/getData.ts
 import { Territory } from '~~/server/models/territory.model'
-import { processTerritoryUpdate } from '~~/server/utils/territory'
 
 // Action này không cần payload
 export default async function (context: ActionContext) {

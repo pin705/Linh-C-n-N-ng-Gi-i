@@ -2,13 +2,11 @@
 import { defineMongooseModel } from '#nuxt/mongoose'
 import type { Schema } from 'mongoose'
 
-// Cấu trúc cho một công trình trong Tiên Phủ
 const buildingSchema = {
-  id: { type: String, required: true }, // 'main_hall', 'wood_yard', etc.
+  id: { type: String, required: true },
   level: { type: Number, default: 0 }
 }
 
-// Cấu trúc cho một hàng đợi nâng cấp/xây dựng
 const upgradeQueueItemSchema = {
   buildingId: { type: String, required: true },
   targetLevel: { type: Number, required: true },
@@ -19,26 +17,23 @@ const upgradeQueueItemSchema = {
 export const Territory = defineMongooseModel('Territory', {
   characterId: { type: 'ObjectId' as unknown as Schema.Types.ObjectId, ref: 'Character', required: true, unique: true },
 
-  // Danh sách các công trình người chơi đã xây
-  buildings: { type: [buildingSchema], default: [] },
-
-  // Tài nguyên hiện có
-  resources: {
-    linhMoc: { type: Number, default: 500 },
-    hanNgoc: { type: Number, default: 500 },
-    linhCoc: { type: Number, default: 200 }
+  buildings: {
+    type: [buildingSchema],
+    default: [{ id: 'main_hall', level: 0 }]
   },
 
-  // Dân số
+  uncollectedResources: {
+    type: Map,
+    of: Number,
+    default: {}
+  },
+
   population: {
     current: { type: Number, default: 10 },
-    capacity: { type: Number, default: 10 } // Sẽ tăng khi nâng cấp nhà dân
+    capacity: { type: Number, default: 10 }
   },
 
-  // Hàng đợi xây dựng (ban đầu chỉ có 1 slot)
   upgradeQueue: { type: [upgradeQueueItemSchema], default: [] },
-
-  // Dùng để tính toán tài nguyên offline
   lastUpdated: { type: Date, default: () => new Date() }
 }, {
   timestamps: true

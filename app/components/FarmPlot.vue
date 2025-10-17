@@ -80,8 +80,6 @@
 </template>
 
 <script setup lang="ts">
-import { SEEDS } from '~~/shared'
-
 const { data: farm, pending, error } = await useFetch('/api/farm/my-farm', { key: 'my-farm' })
 const { performAction, isLoading } = useGameAction()
 const { character } = useCharacterStore()

@@ -2,7 +2,6 @@
 
 import { defineMongooseModel } from '#nuxt/mongoose'
 import type { Schema } from 'mongoose'
-import { REALMS } from '~~/shared'
 
 // Túi đồ giờ đây sẽ có cấu trúc chi tiết hơn
 const inventoryItemSchema = {
@@ -20,6 +19,16 @@ export const Character = defineMongooseModel('Character', {
   cultivationExp: { type: Number, default: 0 }, // Tu vi kinh nghiệm
   // Cảnh giới sẽ được tính toán dựa trên tu vi
   realm: { type: String, default: REALMS[0].name },
+
+  resources: {
+    type: Map,
+    of: Number,
+    default: {
+      linhMoc: 500,
+      hanNgoc: 200,
+      linhCoc: 1000
+    }
+  },
 
   inventory: [inventoryItemSchema]
 }, {

@@ -1,5 +1,0 @@
-export * from './configs/quality.config';
-export * from './configs/seeds.config';
-export * from './configs/herbs.config';
-export * from './configs/realms.config';
-export * from './configs/buildings.config';

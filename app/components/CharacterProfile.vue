@@ -1,66 +1,54 @@
 <template>
-  <div class="bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-yellow-700/50 p-4 sm:p-6 rounded-lg mb-8 shadow-xl shadow-yellow-900/10 relative overflow-hidden">
-    <div class="absolute top-0 left-0 w-16 h-16 bg-[url('/decor/corner-pattern.svg')] bg-contain bg-no-repeat opacity-20 transform -rotate-90" />
-    <div class="absolute bottom-0 right-0 w-16 h-16 bg-[url('/decor/corner-pattern.svg')] bg-contain bg-no-repeat opacity-20 transform rotate-90" />
-
-    <div
-      v-if="!character"
-      class="text-center text-gray-400 py-8"
-    >
+  <div class="bg-gradient-to-br from-gray-900/70 to-black/50 backdrop-blur-sm border-2 border-yellow-800/40 p-6 rounded-lg shadow-xl shadow-black/20 relative">
+    <div v-if="!character" class="text-center text-gray-400 py-8">
       Đang tải thông tin đạo hữu...
     </div>
-    <div
-      v-else
-      class="grid grid-cols-1 md:grid-cols-3 gap-6 font-serif"
-    >
-      <div class="flex flex-col items-center md:items-start text-center md:text-left">
-        <h2 class="text-3xl font-bold text-yellow-300 tracking-wider">
+    <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6 font-serif">
+      <div class="flex flex-col items-center md:items-start text-center md:text-left col-span-1 md:col-span-1">
+        <h2 class="text-3xl font-bold text-yellow-200 tracking-wider [text-shadow:0_0_10px_rgba(251,191,36,0.4)]">
           {{ character.name }}
         </h2>
         <p class="text-gray-300 mt-1">
           Cảnh giới:
-          <span class="text-green-400 font-medium text-lg italic">{{ character.realm }}</span>
+          <span class="text-green-300 font-semibold text-lg italic ml-2">{{ character.realm }}</span>
         </p>
       </div>
 
-      <div class="flex flex-col justify-center">
-        <p class="text-lg text-gray-200 mb-1">
-          Tu Vi Thú Sư
+      <div class="flex flex-col justify-center col-span-1 md:col-span-2">
+        <p class="text-base text-cyan-200 mb-1">
+          Tu Vi Kinh Nghiệm
         </p>
-        <div class="w-full bg-black/30 rounded-full h-5 border-2 border-blue-900/50 p-0.5 overflow-hidden">
+        <div class="w-full bg-black/40 rounded-full h-5 border-2 border-cyan-900/50 p-0.5 relative overflow-hidden group">
           <div
-            class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-500"
+            class="bg-gradient-to-r from-cyan-600 to-sky-400 h-full rounded-full transition-all duration-500 ease-out"
             :style="{ width: `${cultivationPercentage}%` }"
           >
-            <div class="w-full h-full bg-white/20 animate-pulse-fast" />
+            <div class="absolute top-0 left-0 h-full w-full bg-[url('/effects/flow.png')] bg-repeat-x opacity-30 animate-flow" />
           </div>
+          <span class="absolute inset-0 text-center text-xs text-white font-sans font-bold leading-4 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+            {{ character.cultivationExp.toLocaleString() }} / {{ nextRealmExp.toLocaleString() }}
+          </span>
         </div>
-        <p class="text-center text-sm mt-1.5 text-cyan-300 font-sans font-semibold tracking-widest">
-          {{ character.cultivationExp }} / {{ nextRealmExp }}
-        </p>
       </div>
 
-      <div>
-        <h3 class="text-xl text-yellow-400 mb-2 border-b-2 border-yellow-800/50 pb-1">
+      <div class="md:col-span-3">
+        <h3 class="text-xl text-yellow-300 mb-2 border-b-2 border-yellow-800/30 pb-2">
           Túi Càn Khôn
         </h3>
-        <ul
-          v-if="character.inventory && character.inventory.length"
-          class="space-y-1 text-gray-300 max-h-40 overflow-y-auto pr-2"
-        >
-          <li
+        <div v-if="character.inventory && character.inventory.length" class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-gray-300 max-h-40 overflow-y-auto pr-2">
+          <div
             v-for="item in character.inventory"
             :key="item.itemId + item.quality"
-            class="flex justify-between items-center text-base"
+            class="flex items-center justify-between text-base p-2 rounded-md hover:bg-white/5"
           >
-            <span :style="{ color: item.color }">{{ item.name }}</span>
-            <span class="font-sans font-semibold text-amber-300">x{{ item.quantity }}</span>
-          </li>
-        </ul>
-        <p
-          v-else
-          class="text-gray-500 italic text-sm"
-        >
+            <span
+              class="truncate"
+              :style="{ color: item.color, textShadow: `0 0 5px ${item.color}60` }"
+            >{{ item.name }}</span>
+            <span class="font-sans font-semibold text-gray-400 ml-2">x{{ item.quantity }}</span>
+          </div>
+        </div>
+        <p v-else class="text-gray-500 italic text-sm py-4">
           Trong túi trống rỗng, không có một cọng linh thảo.
         </p>
       </div>
@@ -68,13 +56,9 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { REALMS } from '~~/shared'
-
-// Tham chiếu chân thân từ Linh Đài
+<script setup>
 const { character } = useCharacterStore()
 
-// --- LOGIC MỚI ĐỂ TÍNH TOÁN THANH TU VI ---
 const currentRealmIndex = computed(() => {
   if (!character.value) return 0
   return REALMS.findIndex(r => r.name === character.value.realm)
@@ -98,3 +82,13 @@ const cultivationPercentage = computed(() => {
   return Math.max(0, Math.min(100, (expInCurrentRealm / expNeededForNextRealm) * 100))
 })
 </script>
+
+<style scoped>
+@keyframes flow {
+  from { background-position: 0 0; }
+  to { background-position: -100px 0; }
+}
+.animate-flow {
+  animation: flow 2s linear infinite;
+}
+</style>

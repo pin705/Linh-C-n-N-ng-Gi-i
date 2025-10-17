@@ -1,57 +1,73 @@
 <template>
-  <div class="p-4 sm:p-8 bg-gray-900 min-h-screen text-white font-serif">
-    <div class="sticky top-0 bg-gray-900/80 backdrop-blur-sm z-10 py-4 mb-6">
-      <h1 class="text-4xl text-yellow-300 tracking-wider">
-        Tiên Phủ Lãnh Địa
-      </h1>
-      <ResourceBar class="mt-4" />
-    </div>
-
+  <div class="p-4 sm:p-8 min-h-screen font-serif bg-[url('/bg/territory-bg.png')] bg-cover bg-center">
     <div
-      v-if="pending || !territory"
-      class="text-center py-16"
+      v-if="!territory"
+      class="text-center py-16 text-xl animate-pulse"
     >
-      Đang tải Tiên Phủ...
+      Đang triệu hồi Tiên Phủ...
     </div>
     <div
       v-else
-      class="space-y-8"
+      class="space-y-12"
     >
-      <div>
-        <h2 class="text-2xl text-green-400 mb-4">
-          Công Trình Cốt Lõi & Tài Nguyên
-        </h2>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          <BuildingSlot
-            v-for="buildingId in ['main_hall', 'storage', 'wood_yard', 'stone_mine']"
-            :key="buildingId"
-            :building-id="buildingId"
-            :territory="territory"
-            @select="openBuildingModal(buildingId)"
-          />
+      <div
+        v-for="section in sections"
+        :key="section.title"
+      >
+        <div class="relative text-center mb-6">
+          <hr class="absolute top-1/2 -translate-y-1/2 w-full border-t-2 border-dashed border-gray-700/50">
+          <h2
+            class="relative inline-block bg-gray-900 px-4 text-2xl"
+            :class="section.color"
+          >
+            {{ section.title }}
+          </h2>
         </div>
-      </div>
-      <div>
-        <h2 class="text-2xl text-cyan-400 mb-4">
-          Công Trình Phụ Trợ & Quân Sự
-        </h2>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <BuildingSlot
-            v-for="buildingId in ['population_house', 'barracks']"
+            v-for="buildingId in section.buildings"
             :key="buildingId"
             :building-id="buildingId"
             :territory="territory"
             @select="openBuildingModal(buildingId)"
+            @collect="handleCollectResource(buildingId)"
           />
         </div>
       </div>
     </div>
+
+    <BuildingDetailModal
+      :is-open="isModalOpen"
+      :building-id="selectedBuildingId"
+      @close="isModalOpen = false"
+    />
   </div>
 </template>
 
 <script setup>
-const { territory, fetchTerritory } = useTerritoryStore()
-const { pending } = await useAsyncData('init-territory-store', () => fetchTerritory())
+const { territory } = useTerritoryStore()
+const { performAction, isLoading } = useGameAction()
+
+const sections = [
+  {
+    title: 'Công Trình Cốt Lõi & Tài Nguyên',
+    color: 'text-green-400',
+    buildings: ['main_hall', 'storage', 'wood_yard', 'stone_mine']
+  },
+  {
+    title: 'Công Trình Phụ Trợ & Quân Sự',
+    color: 'text-cyan-400',
+    buildings: ['population_house', 'barracks']
+  }
+]
+
+async function handleCollectResource(buildingId) {
+  if (isLoading.value) return
+  const result = await performAction('territory/collectResources', { buildingId })
+  if (result && result.territory) {
+    setTerritory(result.territory)
+  }
+}
 
 // Logic cho Modal
 const isModalOpen = ref(false)
@@ -60,7 +76,5 @@ const selectedBuildingId = ref(null)
 function openBuildingModal(buildingId) {
   selectedBuildingId.value = buildingId
   isModalOpen.value = true
-  console.log('Mở modal cho:', buildingId)
-  // Trong bước tiếp theo, chúng ta sẽ tạo component BuildingDetailModal và hiển thị nó ở đây.
 }
 </script>

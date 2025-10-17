@@ -1,4 +1,6 @@
-import { HERBS, QUALITIES, SEEDS } from '..'
+import { HERBS } from '../configs/herbs.config'
+import { QUALITIES, type Quality } from '../configs/quality.config'
+import { SEEDS } from '../configs/seeds.config'
 
 // Vật phẩm thô từ Database
 interface RawInventoryItem {
