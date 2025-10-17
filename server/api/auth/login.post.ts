@@ -1,3 +1,11 @@
+import { z } from 'zod'
+import { User } from '~~/server/models/User'
+
+const bodySchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+})
+
 export default defineEventHandler(async (event) => {
   const { email, password } = await readBody(event)
 
@@ -8,7 +16,7 @@ export default defineEventHandler(async (event) => {
   if (!isValid) {
     throw createError({
       statusCode: 401,
-      message: 'Thông tin không chính xác'
+      message: 'Thông tin không chính xác',
     })
   }
 
@@ -16,10 +24,9 @@ export default defineEventHandler(async (event) => {
   await setUserSession(event, {
     user: {
       email,
-      id: user._id,
-      ...user
+      userId: user._id,
     },
-    loggedInAt: Date.now()
+    loggedInAt: Date.now(),
   })
 
   return setResponseStatus(event, 201)
