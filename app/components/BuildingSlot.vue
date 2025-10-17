@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative aspect-[4/5] rounded-lg p-4 flex flex-col items-center justify-between transition-all duration-300 cursor-pointer group overflow-hidden bg-gradient-to-br from-gray-900 via-gray-900 to-black"
+    class="relative rounded-lg p-2 sm:p-4 flex flex-col items-center justify-between transition-all duration-300 cursor-pointer group overflow-hidden bg-gradient-to-br from-gray-900 via-gray-900 to-black"
     :class="state.borderColor"
     @click="handleClick"
   >
@@ -12,30 +12,30 @@
 
     <div class="text-center z-10">
       <h3
-        class="text-lg md:text-xl font-semibold font-serif transition-colors"
+        class="text-base md:text-lg font-semibold font-serif transition-colors"
         :class="state.textColor"
       >
         {{ buildingConfig.name }}
       </h3>
       <p
         v-if="building.level > 0"
-        class="text-sm text-gray-400"
+        class="text-xs text-gray-400"
       >
         Cấp {{ building.level }}
       </p>
     </div>
 
     <div
-      class="relative text-6xl my-2 z-10 transition-all duration-500 group-hover:scale-110"
+      class="relative text-5xl sm:text-6xl my-2 z-10 transition-all duration-500 group-hover:scale-110"
       :class="state.iconColor"
     >
-      <div class="w-20 h-20 flex items-center justify-center">
-        <span class="font-bold text-4xl leading-none">{{ state.icon }}</span>
+      <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
+        <span class="font-bold text-3xl sm:text-4xl leading-none">{{ state.icon }}</span>
       </div>
       <Transition name="resource-pop">
         <div
           v-if="showResourcePop"
-          class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full flex items-center gap-1 text-base font-sans font-bold"
+          class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full flex items-center gap-1 text-sm sm:text-base  font-bold"
           :style="{ color: resourcePop.color }"
         >
           <span>{{ resourcePop.symbol }}</span>
@@ -44,12 +44,12 @@
       </Transition>
     </div>
 
-    <div class="h-12 w-full text-center z-10 flex flex-col justify-end">
+    <div class="h-10 w-full text-center z-10 flex flex-col justify-end">
       <div
         v-if="state.status === 'upgrading'"
-        class="font-sans w-full"
+        class=" w-full"
       >
-        <p class="text-sm text-amber-400">
+        <p class="text-xs sm:text-sm text-amber-400">
           {{ upgradeCountdown }}
         </p>
         <div class="w-full bg-black/50 rounded-full h-1.5 mt-1 border border-gray-700">
@@ -61,7 +61,7 @@
       </div>
       <div
         v-else-if="state.status === 'producing' && building.level > 0"
-        class="font-sans w-full"
+        class=" w-full"
       >
         <button
           class="w-full h-8 flex items-center justify-center rounded-md transition-colors disabled:cursor-default"
@@ -69,29 +69,32 @@
           :class="isProductionFull ? 'bg-green-600/80 hover:bg-green-600 text-white animate-pulse' : 'bg-transparent'"
           @click.stop="handleCollect"
         >
-          <div v-if="currentProduction > 0" class="flex items-center gap-2">
+          <div
+            v-if="currentProduction > 0"
+            class="flex items-center gap-1 sm:gap-2"
+          >
             <span
-              class="text-xl"
+              class="text-base sm:text-xl"
               :style="{ color: productionResource.color }"
             >{{ productionResource.symbol }}</span>
-            <span class="font-semibold">{{ Math.floor(currentProduction) }}</span>
+            <span class="font-semibold text-sm sm:text-base">{{ Math.floor(currentProduction) }}</span>
           </div>
         </button>
         <div class="relative w-full">
-            <div class="w-full bg-black/50 rounded-full h-1.5 mt-1 border border-gray-700">
-              <div
-                class="bg-green-500 h-full rounded-full"
-                :style="{ width: productionProgress + '%' }"
-              />
-            </div>
-            <p class="absolute -bottom-4 left-0 right-0 text-xs text-gray-500 tracking-wider">
-              {{ productionCountdown }}
-            </p>
+          <div class="w-full bg-black/50 rounded-full h-1.5 mt-1 border border-gray-700">
+            <div
+              class="bg-green-500 h-full rounded-full"
+              :style="{ width: productionProgress + '%' }"
+            />
+          </div>
+          <p class="absolute -bottom-4 left-0 right-0 text-xs text-gray-500 tracking-wider">
+            {{ productionCountdown }}
+          </p>
         </div>
       </div>
       <div
         v-else
-        class="px-4 py-1.5 rounded-full text-sm font-sans font-semibold border"
+        class="px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm  font-semibold border"
         :class="state.buttonClass"
       >
         {{ state.buttonText }}
@@ -103,7 +106,7 @@
 <script setup>
 const props = defineProps({
   buildingId: { type: String, required: true },
-  territory: { type: Object, required: true },
+  territory: { type: Object, required: true }
 })
 
 const emit = defineEmits(['select', 'collect'])
@@ -112,7 +115,7 @@ const buildingConfig = BUILDINGS[props.buildingId]
 const building = computed(() => props.territory.buildings.find(b => b.id === props.buildingId) || { id: props.buildingId, level: 0 })
 const upgradeQueueItem = computed(() => props.territory.upgradeQueue.find(q => q.buildingId === props.buildingId))
 
-// --- LOGIC MỚI CHO SẢN XUẤT ---
+// --- LOGIC SẢN XUẤT ĐÃ SỬA LỖI ---
 const currentTime = ref(Date.now())
 let timerInterval = null
 
@@ -120,23 +123,20 @@ const productionInfo = computed(() => {
   if (building.value.level === 0) return null
   const levelConfig = buildingConfig.levels.find(l => l.level === building.value.level)
   if (!levelConfig) return null
-
   const prodKey = Object.keys(levelConfig.effects).find(k => k.startsWith('production_'))
   if (!prodKey) return null
-
   const resourceId = prodKey.replace('production_', '')
-  const ratePerHour = levelConfig.effects[prodKey]
-  const cycleTime = 3600 // Chu kỳ sản xuất: 1 giờ
-  const capacity = ratePerHour // Sản lượng tối đa mỗi chu kỳ
-
-  return { resourceId, ratePerHour, cycleTime, capacity }
+  const ratePerMinute = levelConfig.effects[prodKey]
+  const capacity = ratePerMinute
+  return { resourceId, ratePerMinute, capacity }
 })
 
 const currentProduction = computed(() => {
-  if (!productionInfo.value) return 0
-  const secondsPassed = (currentTime.value - new Date(props.territory.lastUpdated).getTime()) / 1000
-  const produced = (productionInfo.value.ratePerHour / 3600) * secondsPassed
-  return Math.min(productionInfo.value.capacity, produced)
+  if (!productionInfo.value || !props.territory.uncollectedResources) return 0
+  const secondsSinceLastUpdate = (currentTime.value - new Date(props.territory.lastUpdated).getTime()) / 1000
+  const produced = (productionInfo.value.ratePerMinute / 60) * secondsSinceLastUpdate
+  const alreadyUncollected = props.territory.uncollectedResources[productionInfo.value.resourceId] || 0
+  return Math.min(productionInfo.value.capacity, alreadyUncollected + produced)
 })
 
 const isProductionFull = computed(() => {
@@ -147,19 +147,6 @@ const isProductionFull = computed(() => {
 const productionProgress = computed(() => {
   if (!productionInfo.value || productionInfo.value.capacity === 0) return 0
   return (currentProduction.value / productionInfo.value.capacity) * 100
-})
-
-// *** PHẦN THÊM MỚI QUAN TRỌNG ***
-const productionCountdown = computed(() => {
-  if (!productionInfo.value || isProductionFull.value) return 'Đã đầy'
-
-  const secondsPassed = (currentTime.value - new Date(props.territory.lastUpdated).getTime()) / 1000
-  const secondsToFull = productionInfo.value.cycleTime - (secondsPassed % productionInfo.value.cycleTime)
-
-  const minutes = Math.floor(secondsToFull / 60)
-  const seconds = Math.floor(secondsToFull % 60)
-
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 })
 
 const productionResource = computed(() => {
@@ -183,42 +170,59 @@ function handleCollect() {
   resourcePop.value = {
     symbol: productionResource.value.symbol,
     amount,
-    color: productionResource.value.color,
+    color: productionResource.value.color
   }
   showResourcePop.value = true
   setTimeout(() => { showResourcePop.value = false }, 1500)
-  emit('collect', props.buildingId)
+  emit('collect') // Chỉ phát sự kiện chung
 }
 
 function handleClick() {
-  if (isProductionFull.value) {
+  if (currentProduction.value >= 1) { // Cho phép thu hoạch sớm
     handleCollect()
   } else {
     emit('select')
   }
 }
-// --- KẾT THÚC LOGIC SẢN XUẤT ---
 
+// --- LOGIC HẸN GIỜ ---
 const upgradeCountdown = ref('')
+const productionCountdown = ref('')
+
 const upgradeProgress = computed(() => {
   if (!upgradeQueueItem.value) return 0
   const start = new Date(upgradeQueueItem.value.startTime).getTime()
   const end = new Date(upgradeQueueItem.value.completionTime).getTime()
   const now = currentTime.value
   if (now >= end) return 100
-  const total = end - start
-  const elapsed = now - start
-  return (elapsed / total) * 100
+  return ((now - start) / (end - start)) * 100
 })
 
 function updateTimers() {
   currentTime.value = Date.now()
+  // Cập nhật countdown nâng cấp
   if (upgradeQueueItem.value) {
     const diff = Math.max(0, new Date(upgradeQueueItem.value.completionTime).getTime() - currentTime.value)
-    const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0')
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0')
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0')
+    const hours = Math.floor(diff / 3600000).toString().padStart(2, '0')
+    const minutes = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0')
+    const seconds = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0')
     upgradeCountdown.value = `${hours}:${minutes}:${seconds}`
+  }
+
+  // ** Cập nhật countdown sản xuất mỗi giây **
+  if (productionInfo.value && !isProductionFull.value) {
+    const remainingCapacity = productionInfo.value.capacity - currentProduction.value
+    const secondsToFull = (remainingCapacity / productionInfo.value.ratePerMinute) * 60
+
+    if (secondsToFull <= 0) {
+      productionCountdown.value = 'Sắp đầy'
+    } else {
+      const minutes = Math.floor(secondsToFull / 60)
+      const seconds = Math.floor(secondsToFull % 60)
+      productionCountdown.value = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    }
+  } else if (isProductionFull.value) {
+    productionCountdown.value = 'Đã đầy'
   }
 }
 
@@ -226,10 +230,7 @@ onMounted(() => {
   updateTimers()
   timerInterval = setInterval(updateTimers, 1000)
 })
-
-onUnmounted(() => {
-  clearInterval(timerInterval)
-})
+onUnmounted(() => { clearInterval(timerInterval) })
 
 const state = computed(() => {
   if (upgradeQueueItem.value) {
@@ -238,7 +239,7 @@ const state = computed(() => {
   if (building.value.level > 0) {
     // Nếu là công trình sản xuất, trả về state 'producing'
     if (productionInfo.value) {
-        return { status: 'producing', icon: '產', buttonText: 'Sản xuất', textColor: 'text-green-300', iconColor: 'text-green-400', borderColor: 'border-green-600/50 group-hover:border-green-500', buttonClass: 'bg-transparent', glowColor: 'bg-green-500/10 blur-md' }
+      return { status: 'producing', icon: '產', buttonText: 'Sản xuất', textColor: 'text-green-300', iconColor: 'text-green-400', borderColor: 'border-green-600/50 group-hover:border-green-500', buttonClass: 'bg-transparent', glowColor: 'bg-green-500/10 blur-md' }
     }
     // Các công trình khác
     return { status: 'idle', icon: '升', buttonText: 'Nâng Cấp', textColor: 'text-green-300', iconColor: 'text-green-400', borderColor: 'border-green-600/50 group-hover:border-green-500', buttonClass: 'bg-transparent border-green-800 group-hover:bg-green-900/50 text-white', glowColor: 'bg-green-500/10 blur-md' }
@@ -246,15 +247,13 @@ const state = computed(() => {
   // Logic kiểm tra có thể xây được không (đơn giản hóa)
   const canBuild = true
   if (canBuild) {
-     return { status: 'can_build', icon: '啟', buttonText: 'Khai Mở', textColor: 'text-cyan-300', iconColor: 'text-cyan-400', borderColor: 'border-cyan-600/50 group-hover:border-cyan-500', buttonClass: 'bg-transparent border-cyan-800 group-hover:bg-cyan-900/50 text-white', glowColor: 'bg-cyan-500/10 blur-md' }
+    return { status: 'can_build', icon: '啟', buttonText: 'Khai Mở', textColor: 'text-cyan-300', iconColor: 'text-cyan-400', borderColor: 'border-cyan-600/50 group-hover:border-cyan-500', buttonClass: 'bg-transparent border-cyan-800 group-hover:bg-cyan-900/50 text-white', glowColor: 'bg-cyan-500/10 blur-md' }
   }
   return { status: 'locked', icon: '封', buttonText: 'Chưa Mở', textColor: 'text-gray-500', iconColor: 'text-gray-600', borderColor: 'border-gray-700/50', buttonClass: 'bg-transparent border-gray-700 text-gray-500', glowColor: 'bg-gray-500/10 blur-md' }
 })
-
 </script>
 
 <style scoped>
-/* Hiệu ứng "Linh Quang Tạc Hiện" */
 .resource-pop-enter-active {
   transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -266,7 +265,6 @@ const state = computed(() => {
   opacity: 0;
   transform: translate(-50%, 20px) scale(0.5);
 }
-/* Hiệu ứng nảy lên và bay lên cao hơn */
 .resource-pop-enter-to,
 .resource-pop-leave-from {
   opacity: 1;

@@ -3,6 +3,7 @@ export function useGameAction() {
   // Lấy pháp quyết từ Linh Đài
   const { updateCharacter } = useCharacterStore()
   const isLoading = ref(false)
+  const { setTerritory } = useTerritoryStore()
 
   const performAction = async <T extends { message?: string }>(action: string, payload?: any): Promise<T | null> => {
     isLoading.value = true
@@ -16,18 +17,19 @@ export function useGameAction() {
         addLog(result.message, 'success')
       }
 
-      // --- LOGIC MỚI: CẬP NHẬT LINH ĐÀI ---
       if (result) {
-        const { farm, ...characterUpdates } = result as any
+        const { territory, resources, ...characterUpdates } = result as any
 
-        // Nếu kết quả trả về có dữ liệu nhân vật, gọi pháp quyết "Tẩy Tủy"
-        if (Object.keys(characterUpdates).length > 1) { // >1 để bỏ qua message
-          updateCharacter(characterUpdates)
+        // 1. Cập nhật Linh Đài Lãnh Địa nếu có
+        if (territory) {
+          setTerritory(territory)
         }
 
-        // Nếu có dữ liệu nông trại, vẫn cần refresh riêng cho nó
-        if (farm) {
-          refreshNuxtData('my-farm')
+        // 2. Cập nhật Linh Đài Nhân Vật nếu có
+        // Gộp 'resources' vào chung với các update khác của character
+        const allCharacterUpdates = resources ? { ...characterUpdates, resources } : characterUpdates
+        if (Object.keys(allCharacterUpdates).length > 0) {
+          updateCharacter(allCharacterUpdates)
         }
       }
 

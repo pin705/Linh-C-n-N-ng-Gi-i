@@ -61,7 +61,7 @@
           </p>
 
           <p
-            class="text-sm font-sans tracking-widest h-5 mt-1"
+            class="text-sm  tracking-widest h-5 mt-1"
             :class="getRemainingSeconds(plot) > 0 ? 'text-cyan-300' : 'text-yellow-300 font-bold'"
           >
             {{ formatTime(plot) }}

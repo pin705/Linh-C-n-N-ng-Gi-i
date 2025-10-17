@@ -74,7 +74,7 @@
           <h4 class="text-xl text-yellow-400 mb-2">
             Tiêu Hao & Điều Kiện
           </h4>
-          <div class="space-y-2 font-sans bg-black/30 p-4 rounded-md border border-gray-700">
+          <div class="space-y-2  bg-black/30 p-4 rounded-md border border-gray-700">
             <div
               v-for="(amount, resource) in nextLevelInfo.cost"
               :key="resource"

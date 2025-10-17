@@ -12,15 +12,15 @@
           >
             <div>
               <p class="font-semibold text-lg" :style="{ color: seed.color }">{{ seed.name }}</p>
-              <p class="text-sm text-gray-400 font-sans">{{ seed.description }}</p>
+              <p class="text-sm text-gray-400 ">{{ seed.description }}</p>
             </div>
-            <span class="font-sans text-xl font-bold text-amber-300 ml-4">x{{ seed.quantity }}</span>
+            <span class=" text-xl font-bold text-amber-300 ml-4">x{{ seed.quantity }}</span>
           </li>
         </ul>
         <div v-else class="text-center text-gray-500 py-8">
           <p>Không có hạt giống nào trong Túi Càn Khôn.</p>
         </div>
-        <button @click="close" class="mt-6 w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-md text-white transition-colors font-sans">
+        <button @click="close" class="mt-6 w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-md text-white transition-colors ">
           Hủy Bỏ
         </button>
       </div>

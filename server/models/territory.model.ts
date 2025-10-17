@@ -11,7 +11,7 @@ const upgradeQueueItemSchema = {
   buildingId: { type: String, required: true },
   targetLevel: { type: Number, required: true },
   startTime: { type: Date, required: true },
-  completionTime: { type: Date, required: true }
+  completionTime: { type: Date, required: true },
 }
 
 export const Territory = defineMongooseModel('Territory', {
@@ -31,6 +31,12 @@ export const Territory = defineMongooseModel('Territory', {
   population: {
     current: { type: Number, default: 10 },
     capacity: { type: Number, default: 10 }
+  },
+
+  resourceCaps: {
+    linhMoc: { type: Number, default: 1000 },
+    hanNgoc: { type: Number, default: 500 },
+    linhCoc: { type: Number, default: 1000 }
   },
 
   upgradeQueue: { type: [upgradeQueueItemSchema], default: [] },

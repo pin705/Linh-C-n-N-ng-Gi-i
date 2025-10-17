@@ -1,56 +1,76 @@
 <template>
-  <div class="bg-gradient-to-br from-gray-900/70 to-black/50 backdrop-blur-sm border-2 border-yellow-800/40 p-4 rounded-lg shadow-xl shadow-black/20">
+  <div class="">
     <h3 class="text-xl text-yellow-300 mb-3 border-b-2 border-yellow-800/30 pb-2 font-serif">
-      Tài Nguyên
+      Tài Nguyên Tiên Phủ
     </h3>
-    <div v-if="character" class="space-y-3 text-white font-sans">
-      <div
-        v-for="resource in configuredResources"
-        :key="resource.id"
-        class="flex items-center justify-between group"
-        :title="resource.name"
-      >
-        <span class="flex items-center gap-2">
-          <span class="text-lg" :style="{ color: resource.color }">{{ resource.symbol }}</span>
-          <span class="text-base text-gray-300">{{ resource.name }}</span>
-        </span>
-        <span class="font-semibold text-base text-gray-200 tracking-wider">
-          {{ Math.floor(character.resources[resource.id] || 0).toLocaleString() }}
-        </span>
+    <div
+      v-if="character && territory"
+      class="space-y-3 text-white"
+    >
+      <div class="flex flex-wrap gap-4">
+        <div
+          v-for="resource in RESOURCES"
+          :key="resource.id"
+          class="group"
+          :title="`${resource.name} (${Math.floor(character.resources[resource.id] || 0).toLocaleString()} / ${getCapacity(resource.id).toLocaleString()})`"
+        >
+          <div class="flex items-center justify-between text-sm mb-1">
+            <span class="flex items-center gap-2">
+              <span
+                class="text-lg"
+                :style="{ color: resource.color }"
+              >{{ resource.symbol }}</span>
+              <span class="text-base text-gray-300 mr-1">{{ resource.name }} </span>
+            </span>
+            <span class="font-semibold text-xs text-gray-400 tracking-wider">
+              {{ Math.floor(character.resources[resource.id] || 0).toLocaleString() }} / {{ getCapacity(resource.id).toLocaleString() }}
+            </span>
+          </div>
+          <div class="w-full bg-black/50 rounded-full h-1.5">
+            <div
+              class="h-full rounded-full transition-all duration-500"
+              :style="{ width: getResourcePercentage(resource.id) + '%', backgroundColor: resource.color }"
+            />
+          </div>
+        </div>
       </div>
 
-      <div class="flex items-center justify-between group pt-2 border-t border-gray-700/50" title="Thị Nhân trong Tiên Phủ">
-        <span class="flex items-center gap-2">
-          <span class="text-lg text-cyan-300">人</span>
-          <span class="text-base text-gray-300">Thị Nhân</span>
-        </span>
-        <span v-if="territory" class="font-semibold text-base text-gray-200 tracking-wider">
-          {{ territory.population.current }} / {{ territory.population.capacity }}
-        </span>
+      <div class="pt-2 border-t border-gray-700/50">
+        <div class="flex items-center text-sm">
+          <span class="flex items-center gap-2">
+            <span class="text-lg text-cyan-300">人</span>
+            <span class="text-base text-gray-300 font-serif mr-1">Thị Nhân </span>
+          </span>
+          <span
+            v-if="territory"
+            class="font-semibold text-base text-gray-200 tracking-wider"
+          >
+            {{ territory.population.current }} / {{ territory.population.capacity }}
+          </span>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useCharacterStore } from '~/composables/useCharacterStore'
-import { useTerritoryStore } from '~/composables/useTerritoryStore'
-import { RESOURCES } from '~/server/configs/resources.config'
-
 const { character } = useCharacterStore()
 const { territory } = useTerritoryStore()
+// --- PHÁP QUYẾT MỚI ---
+/**
+ * Lấy sức chứa tối đa cho một loại tài nguyên từ store
+ */
+function getCapacity(resourceId) {
+  return territory.value?.resourceCaps?.[resourceId] || 0
+}
 
-const configuredResources = computed(() => {
-  return Object.values(RESOURCES).map((r) => {
-    let symbol = '?'
-    let color = '#FFFFFF'
-    switch (r.id) {
-      case 'linhMoc': symbol = '木'; color = '#86efac'; break
-      case 'hanNgoc': symbol = '玉'; color = '#7dd3fc'; break
-      case 'linhCoc': symbol = '穀'; color = '#fde047'; break
-    }
-    return { ...r, symbol, color }
-  })
-})
+/**
+ * Tính toán phần trăm tài nguyên hiện có so với sức chứa
+ */
+function getResourcePercentage(resourceId) {
+  const current = character.value?.resources?.[resourceId] || 0
+  const capacity = getCapacity(resourceId)
+  if (capacity === 0) return 0
+  return Math.min(100, (current / capacity) * 100)
+}
 </script>

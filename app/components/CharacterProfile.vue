@@ -25,7 +25,7 @@
           >
             <div class="absolute top-0 left-0 h-full w-full bg-[url('/effects/flow.png')] bg-repeat-x opacity-30 animate-flow" />
           </div>
-          <span class="absolute inset-0 text-center text-xs text-white font-sans font-bold leading-4 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+          <span class="absolute inset-0 text-center text-xs text-white  font-bold leading-4 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
             {{ character.cultivationExp.toLocaleString() }} / {{ nextRealmExp.toLocaleString() }}
           </span>
         </div>
@@ -45,7 +45,7 @@
               class="truncate"
               :style="{ color: item.color, textShadow: `0 0 5px ${item.color}60` }"
             >{{ item.name }}</span>
-            <span class="font-sans font-semibold text-gray-400 ml-2">x{{ item.quantity }}</span>
+            <span class=" font-semibold text-gray-400 ml-2">x{{ item.quantity }}</span>
           </div>
         </div>
         <p v-else class="text-gray-500 italic text-sm py-4">

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center h-full space-y-4 py-8">
+  <div class="flex lg:flex-col gap-4 items-center h-full p-8">
     <button
       v-for="view in views"
       :key="view.id"
