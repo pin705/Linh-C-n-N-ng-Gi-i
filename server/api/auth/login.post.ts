@@ -1,9 +1,8 @@
 import { z } from 'zod'
-import { User } from '~~/server/models/User'
 
 const bodySchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(6)
 })
 
 export default defineEventHandler(async (event) => {
@@ -16,17 +15,20 @@ export default defineEventHandler(async (event) => {
   if (!isValid) {
     throw createError({
       statusCode: 401,
-      message: 'Thông tin không chính xác',
+      message: 'Thông tin không chính xác'
     })
   }
+
+  const character = await Character.findOne({ userId: user._id })
 
   // 3. 🔐 Thiết lập phiên đăng nhập
   await setUserSession(event, {
     user: {
       email,
-      userId: user._id,
+      userId: user._id
     },
-    loggedInAt: Date.now(),
+    character,
+    loggedInAt: Date.now()
   })
 
   return setResponseStatus(event, 201)

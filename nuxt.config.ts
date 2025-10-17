@@ -1,19 +1,27 @@
+import tailwindcss from '@tailwindcss/vite'
+
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
     'nuxt-mongoose',
     'nuxt-auth-utils',
     '@vueuse/nuxt',
-    '@vite-pwa/nuxt'
+    '@vite-pwa/nuxt',
+    '@pinia/nuxt'
   ],
+
+  ssr: false,
+
+    css: ['~/assets/css/tailwind.css'],
 
   devtools: {
     enabled: false
   },
 
-  css: ['~/assets/css/main.css'],
-
   compatibilityDate: '2025-01-15',
+  vite: {
+    plugins: [tailwindcss()]
+  },
 
   eslint: {
     config: {

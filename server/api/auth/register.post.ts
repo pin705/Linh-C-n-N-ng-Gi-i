@@ -1,7 +1,5 @@
 import { getRequestHeader } from 'h3'
 import { z } from 'zod'
-import { sendSystemMail } from '~~/server/handlers/mailHandler'
-import { User } from '~~/server/models/User'
 
 function getRealIP(event) {
   const headers = event.node.req.headers
@@ -18,7 +16,7 @@ function getRealIP(event) {
 const bodySchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
-  captchaToken: z.string(), // from client
+  captchaToken: z.string() // from client
 })
 
 export default defineEventHandler(async (event) => {
@@ -30,40 +28,18 @@ export default defineEventHandler(async (event) => {
 
   const ua = getRequestHeader(event, 'user-agent') || 'unknown'
 
-  // // 1. Check CAPTCHA
-  // const verifyCaptcha = await $fetch(
-  //   "https://www.google.com/recaptcha/api/siteverify",
-  //   {
-  //     method: "POST",
-  //     body: new URLSearchParams({
-  //       secret: process.env.RECAPTCHA_SECRET_KEY!,
-  //       response: captchaToken,
-  //     }),
-  //   }
-  // );
-
-  // if (
-  //   !verifyCaptcha.success ||
-  //   (verifyCaptcha.score !== undefined && verifyCaptcha.score < 0.5)
-  // ) {
-  //   throw createError({
-  //     statusCode: 403,
-  //     message: "⚠️ Xác thực không thành công.",
-  //   });
-  // }
-
   // 2. Rate limit theo IP – không quá 5 account mỗi giờ
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
   const recentCount = await User.countDocuments({
     createdAt: { $gte: oneHourAgo },
-    lastKnownIP: ip,
+    lastKnownIP: ip
   })
 
   if (recentCount > 5) {
     throw createError({
       statusCode: 429,
       message:
-        '⏳ Quá nhiều tài khoản được tạo từ địa chỉ IP này. Vui lòng thử lại sau.',
+        '⏳ Quá nhiều tài khoản được tạo từ địa chỉ IP này. Vui lòng thử lại sau.'
     })
   }
 
@@ -77,7 +53,7 @@ export default defineEventHandler(async (event) => {
   if (!ua || ua.includes('curl') || ua.includes('bot')) {
     throw createError({
       statusCode: 403,
-      message: '🚫 Trình duyệt không hợp lệ.',
+      message: '🚫 Trình duyệt không hợp lệ.'
     })
   }
 
@@ -87,7 +63,7 @@ export default defineEventHandler(async (event) => {
     email: email.trim(),
     password: hashedPassword,
     lastKnownIP: ip,
-    userAgent: ua,
+    userAgent: ua
   })
 
   const newUser = await user.save()
@@ -95,12 +71,12 @@ export default defineEventHandler(async (event) => {
   // 6. Tạo nhân vật mặc định nếu chưa có
   const exists = await Character.findOne({ userId: newUser._id })
   if (!exists) {
-    const newCharacter = await Character.create({
-      userId: newUser._id,
-      name: 'Người chơi',
-      realm: 'Luyện Khí Tầng 1',
-      exp: 0,
-    })
+    // const newCharacter = await Character.create({
+    //   userId: newUser._id,
+    //   name: 'Người chơi',
+    //   realm: 'Luyện Khí Tầng 1',
+    //   exp: 0
+    // })
 
     // =======================================================================
     // THÊM MỚI: Logic Gửi quà Tân Thủ
@@ -112,20 +88,20 @@ export default defineEventHandler(async (event) => {
     `
     const attachments = [
       { type: 'currency', itemId: 'spiritStone', quantity: 50_000_000 },
-      { type: 'currency', itemId: 'towerToken', quantity: 150_000_000 },
+      { type: 'currency', itemId: 'towerToken', quantity: 150_000_000 }
     ]
 
     // Gọi hàm gửi thư
-    await sendSystemMail(newCharacter._id.toString(), mailTitle, mailContent, attachments)
+    // await sendSystemMail(newCharacter._id.toString(), mailTitle, mailContent, attachments)
     // =======================================================================
   }
 
   // 7. Set session
   await setUserSession(event, {
     user: {
-      email,
+      email
     },
-    loggedInAt: Date.now(),
+    loggedInAt: Date.now()
   })
 
   return true

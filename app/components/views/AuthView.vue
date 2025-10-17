@@ -390,7 +390,6 @@ function chooseServer(key) {
 /* ----------------------------------- */
 
 const { fetch, clear } = useUserSession()
-const store = useGameStore()
 
 const quotes = [
   '“Thiên địa bất nhân, vạn vật vi sô cẩu. Chỉ có đạo tâm bất diệt, mới có thể nghịch thiên mà hành.”',
@@ -402,12 +401,6 @@ const quotes = [
   '“Mật pháp chân truyền không dành cho kẻ hồ đồ. Khai mở đạo tâm, để ánh sáng dẫn đường.”',
 ]
 const randomQuote = ref('')
-
-onMounted(() => {
-  store.setLoading(false)
-  clear()
-})
-
 watch(rememberEmail, (v) => {
   if (!v) localStorage.removeItem('remembered_email')
   else if (email.value) localStorage.setItem('remembered_email', email.value)
@@ -524,7 +517,7 @@ async function submit() {
     await $fetch(endpoint, { method: 'POST', body })
     if (mode.value === 'login') {
       await fetch()
-      await store.fetchCharacter()
+      // await store.fetchCharacter()
       success.value = 'Đăng nhập thành công.'
       navigateTo('/')
       return
@@ -533,7 +526,6 @@ async function submit() {
     if (mode.value === 'register') {
       success.value = 'Khai tông lập danh thành công. Mời đạo hữu nhập định tu hành.'
       switchMode('login')
-      store.setLoading(false)
       return
     }
 
@@ -542,7 +534,6 @@ async function submit() {
     switchMode('login')
   }
   catch (err) {
-    store.setLoading(false)
     const serverMsg = err?.data?.message || err?.message
     error.value
       = mode.value === 'login'
