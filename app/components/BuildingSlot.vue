@@ -12,7 +12,7 @@
 
     <div class="text-center z-10">
       <h3
-        class="text-base md:text-lg font-semibold font-serif transition-colors"
+        class="text-sm md:text-base font-semibold font-serif transition-colors"
         :class="state.textColor"
       >
         {{ buildingConfig.name }}
@@ -26,7 +26,7 @@
     </div>
 
     <div
-      class="relative text-5xl sm:text-6xl my-2 z-10 transition-all duration-500 group-hover:scale-110"
+      class="relative text-4xl sm:text-5xl my-1 sm:my-2 z-10 transition-all duration-500 group-hover:scale-110"
       :class="state.iconColor"
     >
       <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
@@ -35,7 +35,7 @@
       <Transition name="resource-pop">
         <div
           v-if="showResourcePop"
-          class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full flex items-center gap-1 text-sm sm:text-base  font-bold"
+          class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full flex items-center gap-1 text-sm sm:text-base font-sans font-bold"
           :style="{ color: resourcePop.color }"
         >
           <span>{{ resourcePop.symbol }}</span>
@@ -44,10 +44,10 @@
       </Transition>
     </div>
 
-    <div class="h-10 w-full text-center z-10 flex flex-col justify-end">
+    <div class="h-14 w-full text-center z-10 flex flex-col justify-end">
       <div
         v-if="state.status === 'upgrading'"
-        class=" w-full"
+        class="font-sans w-full"
       >
         <p class="text-xs sm:text-sm text-amber-400">
           {{ upgradeCountdown }}
@@ -61,7 +61,7 @@
       </div>
       <div
         v-else-if="state.status === 'producing' && building.level > 0"
-        class=" w-full"
+        class="font-sans w-full"
       >
         <button
           class="w-full h-8 flex items-center justify-center rounded-md transition-colors disabled:cursor-default"
@@ -80,21 +80,21 @@
             <span class="font-semibold text-sm sm:text-base">{{ Math.floor(currentProduction) }}</span>
           </div>
         </button>
-        <div class="relative w-full">
+        <div class="relative w-full h-5 flex flex-col items-center justify-start">
           <div class="w-full bg-black/50 rounded-full h-1.5 mt-1 border border-gray-700">
             <div
               class="bg-green-500 h-full rounded-full"
               :style="{ width: productionProgress + '%' }"
             />
           </div>
-          <p class="absolute -bottom-4 left-0 right-0 text-xs text-gray-500 tracking-wider">
+          <p class="text-xs text-gray-500 tracking-wider mt-1">
             {{ productionCountdown }}
           </p>
         </div>
       </div>
       <div
         v-else
-        class="px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm  font-semibold border"
+        class="px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-sans font-semibold border"
         :class="state.buttonClass"
       >
         {{ state.buttonText }}
@@ -114,55 +114,99 @@ const emit = defineEmits(['select', 'collect'])
 const buildingConfig = BUILDINGS[props.buildingId]
 const building = computed(() => props.territory.buildings.find(b => b.id === props.buildingId) || { id: props.buildingId, level: 0 })
 const upgradeQueueItem = computed(() => props.territory.upgradeQueue.find(q => q.buildingId === props.buildingId))
+const showResourcePop = ref(false)
+const resourcePop = ref({ symbol: '', amount: 0, color: '#FFFFFF' })
 
-// --- LOGIC SẢN XUẤT ĐÃ SỬA LỖI ---
 const currentTime = ref(Date.now())
 let timerInterval = null
 
+// --- LOGIC SẢN XUẤT ĐÃ SỬA LỖI HOÀN TOÀN ---
 const productionInfo = computed(() => {
   if (building.value.level === 0) return null
   const levelConfig = buildingConfig.levels.find(l => l.level === building.value.level)
   if (!levelConfig) return null
   const prodKey = Object.keys(levelConfig.effects).find(k => k.startsWith('production_'))
   if (!prodKey) return null
+
   const resourceId = prodKey.replace('production_', '')
   const ratePerMinute = levelConfig.effects[prodKey]
-  const capacity = ratePerMinute
-  return { resourceId, ratePerMinute, capacity }
+  const maxOfflineHours = levelConfig.effects.maxOfflineHours || 8
+  const maxAccumulation = ratePerMinute * 60 * maxOfflineHours
+
+  return { resourceId, ratePerMinute, maxAccumulation }
 })
 
 const currentProduction = computed(() => {
-  if (!productionInfo.value || !props.territory.uncollectedResources) return 0
-  const secondsSinceLastUpdate = (currentTime.value - new Date(props.territory.lastUpdated).getTime()) / 1000
-  const produced = (productionInfo.value.ratePerMinute / 60) * secondsSinceLastUpdate
+  if (!productionInfo.value) return 0
+  const secondsPassed = (currentTime.value - new Date(props.territory.lastUpdated).getTime()) / 1000
+  const producedNow = (productionInfo.value.ratePerMinute / 60) * secondsPassed
   const alreadyUncollected = props.territory.uncollectedResources[productionInfo.value.resourceId] || 0
-  return Math.min(productionInfo.value.capacity, alreadyUncollected + produced)
+  return Math.min(productionInfo.value.maxAccumulation, alreadyUncollected + producedNow)
 })
 
 const isProductionFull = computed(() => {
   if (!productionInfo.value) return false
-  return currentProduction.value >= productionInfo.value.capacity
+  return currentProduction.value >= productionInfo.value.maxAccumulation
 })
 
 const productionProgress = computed(() => {
-  if (!productionInfo.value || productionInfo.value.capacity === 0) return 0
-  return (currentProduction.value / productionInfo.value.capacity) * 100
+  if (!productionInfo.value || productionInfo.value.maxAccumulation === 0) return 0
+  return (currentProduction.value / productionInfo.value.maxAccumulation) * 100
 })
 
-const productionResource = computed(() => {
-  if (!productionInfo.value) return {}
-  const res = RESOURCES[productionInfo.value.resourceId]
-  let symbol = '?'
-  let color = '#FFFFFF'
-  switch (res.id) {
-    case 'linhMoc': symbol = '木'; color = '#86efac'; break
-    case 'hanNgoc': symbol = '玉'; color = '#7dd3fc'; break
+const productionCountdown = ref('')
+const upgradeCountdown = ref('')
+
+function updateTimers() {
+  currentTime.value = Date.now()
+  if (upgradeQueueItem.value) {
+    const diff = Math.max(0, new Date(upgradeQueueItem.value.completionTime).getTime() - currentTime.value)
+    const hours = Math.floor(diff / 3600000).toString().padStart(2, '0')
+    const minutes = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0')
+    const seconds = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0')
+    upgradeCountdown.value = `${hours}:${minutes}:${seconds}`
   }
-  return { ...res, symbol, color }
-})
 
-const showResourcePop = ref(false)
-const resourcePop = ref({ symbol: '', amount: 0, color: '#FFFFFF' })
+  if (productionInfo.value) {
+    if (isProductionFull.value) {
+      productionCountdown.value = 'Kho đã đầy'
+    } else {
+      const remainingCapacity = productionInfo.value.maxAccumulation - currentProduction.value
+      const secondsToFull = (remainingCapacity / productionInfo.value.ratePerMinute) * 60
+
+      if (secondsToFull <= 0) {
+        productionCountdown.value = 'Sắp đầy'
+      } else {
+        const hours = Math.floor(secondsToFull / 3600)
+        const minutes = Math.floor((secondsToFull % 3600) / 60)
+
+        if (hours > 0) {
+          productionCountdown.value = `~${hours}h ${minutes}m`
+        } else {
+          const secs = Math.floor(secondsToFull % 60)
+          productionCountdown.value = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+        }
+      }
+    }
+  }
+}
+
+onMounted(() => {
+  updateTimers()
+  timerInterval = setInterval(updateTimers, 1000)
+})
+onUnmounted(() => { clearInterval(timerInterval) })
+
+// ... (logic còn lại: productionResource, handleCollect, handleClick, upgradeProgress, state, etc. giữ nguyên)
+
+const upgradeProgress = computed(() => {
+  if (!upgradeQueueItem.value) return 0
+  const start = new Date(upgradeQueueItem.value.startTime).getTime()
+  const end = new Date(upgradeQueueItem.value.completionTime).getTime()
+  const now = currentTime.value
+  if (now >= end) return 100
+  return ((now - start) / (end - start)) * 100
+})
 
 function handleCollect() {
   if (currentProduction.value < 1) return
@@ -185,52 +229,17 @@ function handleClick() {
   }
 }
 
-// --- LOGIC HẸN GIỜ ---
-const upgradeCountdown = ref('')
-const productionCountdown = ref('')
-
-const upgradeProgress = computed(() => {
-  if (!upgradeQueueItem.value) return 0
-  const start = new Date(upgradeQueueItem.value.startTime).getTime()
-  const end = new Date(upgradeQueueItem.value.completionTime).getTime()
-  const now = currentTime.value
-  if (now >= end) return 100
-  return ((now - start) / (end - start)) * 100
-})
-
-function updateTimers() {
-  currentTime.value = Date.now()
-  // Cập nhật countdown nâng cấp
-  if (upgradeQueueItem.value) {
-    const diff = Math.max(0, new Date(upgradeQueueItem.value.completionTime).getTime() - currentTime.value)
-    const hours = Math.floor(diff / 3600000).toString().padStart(2, '0')
-    const minutes = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0')
-    const seconds = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0')
-    upgradeCountdown.value = `${hours}:${minutes}:${seconds}`
+const productionResource = computed(() => {
+  if (!productionInfo.value) return {}
+  const res = RESOURCES[productionInfo.value.resourceId]
+  let symbol = '?'
+  let color = '#FFFFFF'
+  switch (res.id) {
+    case 'linhMoc': symbol = '木'; color = '#86efac'; break
+    case 'hanNgoc': symbol = '玉'; color = '#7dd3fc'; break
   }
-
-  // ** Cập nhật countdown sản xuất mỗi giây **
-  if (productionInfo.value && !isProductionFull.value) {
-    const remainingCapacity = productionInfo.value.capacity - currentProduction.value
-    const secondsToFull = (remainingCapacity / productionInfo.value.ratePerMinute) * 60
-
-    if (secondsToFull <= 0) {
-      productionCountdown.value = 'Sắp đầy'
-    } else {
-      const minutes = Math.floor(secondsToFull / 60)
-      const seconds = Math.floor(secondsToFull % 60)
-      productionCountdown.value = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-    }
-  } else if (isProductionFull.value) {
-    productionCountdown.value = 'Đã đầy'
-  }
-}
-
-onMounted(() => {
-  updateTimers()
-  timerInterval = setInterval(updateTimers, 1000)
+  return { ...res, symbol, color }
 })
-onUnmounted(() => { clearInterval(timerInterval) })
 
 const state = computed(() => {
   if (upgradeQueueItem.value) {

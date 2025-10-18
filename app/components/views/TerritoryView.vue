@@ -48,6 +48,7 @@
 <script setup>
 const { territory } = useTerritoryStore()
 const { performAction, isLoading } = useGameAction()
+const { setTerritory } = useTerritoryStore()
 
 const sections = [
   {
